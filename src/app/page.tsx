@@ -1,7 +1,21 @@
-import Image from 'next/image'
-import styles from './page.module.css'
+"use client";
 
-export default function Home() {
+import Image from "next/image";
+import { Provider, connect } from "react-redux";
+
+import styles from "./page.module.css";
+import { StoreProvider } from "./StoreProvider";
+// import { selectCountPageDomain } from "../../lib/selecter";
+const mapStateToProps = (state: { count: number }) => ({
+  ...state,
+});
+
+const mapDispatchToProps = {
+  /* Map action creators to props */
+};
+
+function Home(props: any) {
+  console.log(props);
   return (
     <main className={styles.main}>
       <div className={styles.description}>
@@ -15,7 +29,7 @@ export default function Home() {
             target="_blank"
             rel="noopener noreferrer"
           >
-            By{' '}
+            By{" "}
             <Image
               src="/vercel.svg"
               alt="Vercel Logo"
@@ -91,5 +105,6 @@ export default function Home() {
         </a>
       </div>
     </main>
-  )
+  );
 }
+export default connect(mapStateToProps, mapDispatchToProps)(Home);

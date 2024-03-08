@@ -1,0 +1,179 @@
+NEXTJS - REDUX
+
+* NEXTJS:
+ - Routing
+   + Routes : Phân tầng dạng Tree - mỗi đốt sẽ có 1 file page (App Router) hoặc index.js(Page Router) đại diện
+
+   + Thành phần của 1 route : 
+     _ page.js: Trang đại diện cho page hiện tại
+     _ layout.js: Layout bao bọc trang Page.js - nếu page hiện tại có các page con thì sẽ bọc cả các page con, nó sẽ chỉ render 1 lần 
+      - nếu hiện tại không tắt chế độ ReactStrictMode thì nó sẽ bị chạy 2 lần - nên tắt chế độ ReactStrictMode
+     _ template.js: template sẽ bọc Page.js và được bọc bởi Layout.js - nó sẽ rerender mỗi khi thay đổi path giữa các page con được bọc bởi template này
+     _ error.js : React error boundary - nó lắng nghe khi các thành phần con gặp lỗi crash trang và thay thế trang hiện tại bằng 1 trang Error có sẳn hoặc được define sẳng, Page lỗi sẽ được thay thể bởi file error.js gần cấp nó nhất, còn với lỗi crash trong file layout.js thì nó sẽ đươc thay thế bởi file Error.js ở Page cha của nó, vì cùng cấp thì k có thằng ErrorBoundary nào bọc nó cả
+     _ loading.js: React suspense boundary - nó sẽ render thay thế trong thời gian Page.js đang được load
+     _ not-found.js : React error boundary - Nó sẽ render page not found nếu path của user vào chưa được define hoặc khi gọi func notFound của next/navigation trong page.js, nếu không tạo file này nó sẽ render not-found 404 default của Nextjs
+
+   + Router Groups : Tạo folder dạng "(name-group)"  chứa toàn bộ các route có cùng dạng chức năng - vd group (auth) chứa login - register - forgot-password
+     _ Khi tạo file layout nằm trong RouterGroup nó sẽ áp dụng cho toàn bộ thành phần của RouterGroup
+   + Private Folders : khi tạo folder với tên bắt đầu bằng "_"  trong App hoặc trong 1 trong những nhánh của Router thì folter đó sẽ không bị định tuyến thành 1 path - vd _setting => /_setting => not-found - nếu muốn đặt tên cho định tuyến bắt đầu bằng _ thì có thể thay thế bằng "%5f" 
+
+   + Metadata : 
+     _ Có các thuộc tính như : title, description , openGraph , ...
+       - title: có 2 dạng define - string & object , thường ở page home sẽ define dạng object - ở dạng object thì có 3 thành phần 
+          - default : title default, dùng cho page hiện tại và nếu các page con không define metadata-title thì sẽ dùng nó 
+          - template : Define sẳng template cho title - "$s | Chonhanh" => ở page con define metadata-title là "Chợ" => "Chợ | Chonhanh"
+          - absolute: Thường sẽ không define ở home mà sẽ define ở các page con mà k muốn dùng template của Homepage
+     _ Khi tạo thẻ metadata ở layout của homepage 
+
+   + Link Navigation : Dùng các cách dưới để điều hướng trang trong Nextjs
+     _ Sử dụng thẻ Component <Link/> của next/link - cách dùng tương tự <a/>
+       + Chúng ta có thể dùng usePathName để xem mình có đang ở path link sắp điều hướng tới không (Active Links)
+     _ Sử dụng useRouter() hook : router.push('/dashboard')
+     _ Sử dụng redirect function : redirect('/login')
+   
+   + Parallel Routes: Bộ định tuyến song song, hổ trợ Page hiển thị nhiều page cùng lúc
+     _ layout: Cấu trúc tổng thể của trang web, chứa các Slots cho các phần nội dung cụ thể
+     _ Slots: Là những thành phần sẽ trám vào vị trí được define sẳng trong layout có tên bắt đầu bằng @ - vd: @main - @sidebar
+   
+   + Conditional Routes: Định tuyến có điều kiện 
+  
+   + Intercepting Routes : Thay đổi URL khi nhấn vào Link nhưng sẽ render Component khác thay thế Page tưng ứng với path
+     (.)name-page: nằm cùng phân tầng với file bị thay thế - vd : app/f2  ---- app/(.)f2 
+     (..)name-page: file thay thế nằm dưới file bị thay thế 1 tầng file - vd : app/f2  ---- app/f3/(..)f2 
+     (...)name-page: File thay thế có thể nằm bất cứ đâu và nó chỉ có thể thay thế file ở thư mục gốc (app/)
+
+   + Dynamic Routers: Khi không biết đặt tên cho bộ định tuyến là gì hoặc tên của bộ dịnh tuyến là động 
+     _ [slug] : app/blog/[slug]/page.js  - - -	/blog/a    - - -   { slug: 'a' }
+     _ [...slug]: Dynamic Segments  có thể được mở rộng để bắt tất cả các segments tiếp theo nhưng bắt buộc phải có 1 segments
+	app/shop/[...slug]/page.js	/shop/a		{ slug: ['a'] }
+	app/shop/[...slug]/page.js	/shop/a/b	{ slug: ['a', 'b'] }
+	app/shop/[...slug]/page.js	/shop/a/b/c	{ slug: ['a', 'b', 'c'] }
+     _ [[...slug]]: Dynamic Segments  có thể được mở rộng để bắt tất cả các segments tiếp theo nhưng khi không có segment nào thì nó sẽ match với trang cha
+	app/shop/[[...slug]]/page.js	/shop		{}
+	app/shop/[[...slug]]/page.js	/shop/a		{ slug: ['a'] }
+	app/shop/[[...slug]]/page.js	/shop/a/b	{ slug: ['a', 'b'] }
+	app/shop/[[...slug]]/page.js	/shop/a/b/c	{ slug: ['a', 'b', 'c'] }
+   
+   + Route Handlers: cho phép bạn sử dụng các API Web Request và Response để xử lý route theo cách linh hoạt hơn. Bạn có thể:
+     _ Tạo các middleware tùy chỉnh: Chặn các request, thực hiện các thao tác trước khi xử lý route, và thay đổi response.
+     _ Xử lý các request HTTP khác nhau: Hỗ trợ GET, POST, PUT, DELETE và các phương thức HTTP khác.
+     _ Tạo các API tùy chỉnh: Xử lý các request đến các endpoint cụ thể và trả về dữ liệu JSON hoặc các định dạng khác.
+     _ Caching : Nextjs sẽ tự động cache lại các reponse nếu k sdung 1 số biện pháp chặn cache
+        + Điều chỉnh "Dynamic mod" trong Segment Config option -dynamic = "force-dynamic"; // Chặn cache lưu lại giá trị reponse - giá trị mặc định :"auto"
+        + Sử dung request object với method GET (getStaticProps , getServerSideProps)
+        + sử dụng chức năng động như header() và cookie()
+	+ Sử dụng Method khác ngoài GET
+
+   + midderware: middleware đóng vai trò như một lớp chức năng trung gian nằm giữa các request và response của ứng dụng web. Nó cho phép bạn thực hiện các thao tác trước khi xử lý request và sau khi xử lý response
+	_ 1. Xử lý trước request:
+	   - Xác thực người dùng: Middleware có thể kiểm tra xem người dùng có quyền truy cập vào trang web hay API hay không.
+	   - Ghi nhật ký: Middleware có thể ghi lại thông tin về các request, chẳng hạn như địa chỉ IP, URL được truy cập, thời gian truy cập, v.v.
+	   - Chuyển hướng: Middleware có thể chuyển hướng người dùng đến một trang web khác dựa trên các điều kiện nhất định.
+   	_ 2. Xử lý sau response:
+	   - Caching: Middleware có thể lưu trữ response vào bộ nhớ cache để cải thiện hiệu suất.
+	   - Nén: Middleware có thể nén response để giảm kích thước của nó và cải thiện tốc độ tải trang.
+	   - Thêm header: Middleware có thể thêm header vào response để cung cấp thêm thông tin cho trình duyệt.
+	_ Có 2 loại middleware trong nextjs: middl-toàn cục và middl-dựa vào page
+
+
+ - RENDERING
+    + Server Components : Chúng chạy trực tiếp trên máy chủ, đảm bảo rằng các cập nhật trạng thái và tác động phụ xảy ra phía máy chủ, tăng cường bảo mật và cung cấp SEO tốt hơn.
+Server Components có thể giao tiếp với máy khách bằng cách sử dụng truy xuất dữ liệu bất đồng bộ (như getStaticProps hoặc getServerSideProps) và các hook như useSWR hoặc useMutation.
+    + Client Components: Khối xây dựng truyền thống trong Next.js, render và tương tác trực tiếp trong trình duyệt của người dùng.Chúng thường được sử dụng cho các yếu tố tương tác và cập nhật UI động. Client Components thường tận dụng các thư viện quản lý trạng thái React (như Redux, Context API hoặc Zustand) để xử lý dữ liệu và tương tác.
+    + Lựa chọn tối ưu giữa Server Components và Client Components phụ thuộc vào nhu cầu cụ thể của dự án bạn:
+	_ Server Components: Ưu tiên SEO, bảo mật và khả năng tương thích với logic phía máy chủ.
+	_ Client Components: Ưu tiên sự quen thuộc của nhà phát triển, khả năng tương tác và hiệu suất cho giao diện người dùng năng động cao.
+
+ - OPTIMIZING - Next.js cung cấp nhiều tính năng giúp tối ưu hóa hiệu suất và trải nghiệm người dùng cho ứng dụng web
+   + Image (<Image/>
+	_ Tự động nén: Next.js có thể tự động nén hình ảnh để giảm kích thước tệp.
+	_ Responsive images: Tự động tạo các phiên bản hình ảnh có kích thước khác nhau cho các thiết bị khác nhau.
+	_ Lazy loading: Chỉ tải hình ảnh khi người dùng cần, cải thiện thời gian tải trang.
+   + Video (video || iframe)
+	_ Sử dụng các định dạng video được tối ưu hóa cho web như WebM.
+	_ Cân nhắc sử dụng dịch vụ lưu trữ video theo yêu cầu (CDNs) để phân phối video hiệu quả.
+
+   + Font : next/font sẽ tự động tối ưu hóa phông chữ của bạn (bao gồm cả phông chữ tùy chỉnh) và xóa các yêu cầu mạng bên ngoài để cải thiện hiệu suất và quyền riêng tư. Nextjs sẽ tự động lưu lại font mà mình muốn áp dụng vào dự án của mình và tự động tìm font dự phòng gần giống nhất với font áp dụng để tránh tình trạng load font chậm gây hiện tượng giật khi đổi font -https://youtube.com/clip/Ugkxkm82LVwfJxztuG0tIEGg3fr4AGmOGUua?si=OCJoWlIh5kSgeykN
+
+   + Metadata : Next.js có Metadata API có thể được sử dụng để xác định Metadata ứng dụng của bạn (ví dụ: thẻ meta và thẻ liên kết bên trong phần tử đầu HTML của bạn) để cải thiện khả năng chia sẻ trên web và SEO.
+
+   + Scripts : 
+	_ Sử dụng các thư viện JavaScript được tối ưu hóa và có kích thước nhỏ.
+	_ Triển khai các kỹ thuật như tree shaking và code splitting để giảm kích thước bundle JavaScript.
+	_ <Script src="https://example.com/script.js" />
+
+   + Bundle Analyzer:
+	_ Sử dụng công cụ webpack-bundle-analyzer để phân tích nội dung bundle JavaScript.
+	_ Xác định các thư viện hoặc mã không sử dụng và loại bỏ chúng.
+
+   + Lazy Loading:
+	_ Sử dụng component next/dynamic để lazy load các component.
+	_ Lazy load các hình ảnh và video.
+	_ Lazy load các thư viện bên ngoài
+
+   + Analytics (Phân tích):
+	_ Next.js có hỗ trợ tích hợp để đo lường và báo cáo các số liệu hiệu suất. Bạn có thể sử dụng useReportWebVitalshook để tự quản lý báo cáo hoặc cách khác, Vercel cung cấp dịch vụ được quản lý để tự động thu thập và trực quan hóa số liệu cho bạn.
+	_ Theo dõi các chỉ số như lượt truy cập trang, thời gian lưu lại trang, tỷ lệ thoát trang.
+
+   + Instrumentation : là quá trình sử dụng mã để tích hợp các công cụ giám sát và ghi nhật ký vào ứng dụng của bạn. Điều này cho phép bạn theo dõi hiệu suất và hành vi của ứng dụng cũng như gỡ lỗi các vấn đề trong quá trình sản xuất.
+
+   + Static Assets (Tài nguyên tĩnh):
+
+	_ Sử dụng next-images để lưu trữ hình ảnh trên CDN.
+	_ Sử dụng Vercel để lưu trữ các tài nguyên tĩnh khác như JavaScript, CSS và HTML.
+   + Third Party Libraries (Thư viện của bên thứ ba):
+
+	_ Sử dụng các thư viện được cập nhật và bảo trì tốt như react-router-dom.
+	_ Kiểm tra kích thước và tác động hiệu suất của thư viện trước khi sử dụng.
+
+
+* Redux
+ - Toolkit : Redux Toolkit là một thư viện giúp đơn giản hóa việc quản lý trạng thái trong ứng dụng React. Nó cung cấp các API và tiện ích giúp bạn viết code Redux dễ dàng, hiệu quả và bảo trì tốt hơn.
+  + Lợi ích:
+	_ Quản lý trạng thái tập trung: Redux cho phép bạn duy trì trạng thái của toàn bộ ứng dụng trong một store duy nhất, giúp việc quản lý và truy cập dữ liệu giữa các thành phần dễ dàng hơn.
+
+	_ Cập nhật trạng thái theo dự đoán: Redux có luồng dữ liệu rõ ràng, nghĩa là thay đổi trạng thái chỉ có thể xảy ra khi bạn tạo một hành động và gửi nó thông qua Redux. Điều này giúp bạn dễ dàng hiểu cách dữ liệu của ứng dụng thay đổi theo các hành động của người dùng.
+
+	_ Gỡ lỗi dễ dàng hơn: Với Redux DevTools, bạn có một bản ghi rõ ràng về tất cả các thay đổi đối với trạng thái ứng dụng. Điều này giúp việc xác định và sửa lỗi trong code của bạn dễ dàng hơn, tiết kiệm thời gian và công sức trong quá trình gỡ lỗi.
+
+	_ Hiệu suất tốt hơn: Bằng cách giảm thiểu số lần cập nhật trạng thái và giảm nhu cầu truyền dữ liệu qua props, Redux giúp cải thiện hiệu suất của ứng dụng.
+
+  + Store :
+	_ configureStore : Phương thức tiêu chuẩn để tạo Store , parameters : 
+		+ reducer : 1 reducer đai diện cho root reducer hoăc  1 object chưa các reducer thannh phân được combine lai bằng `combineReducers()`
+		+ middleware: 1 Array các middleware mong muốn được truyền vào, nếu không cung cấp nó sẽ sdung default middleware được trả ra của func `getDefaultMiddleware()`
+		+ devTools: default true - bật tắt có tích hợp Redux DevTool không
+		+ configureStore : cho phép bạn cung cấp trạng thái ban đầu cho kho lưu trữ Redux.
+		+ Enhancer:  là một hàm bậc cao (higher-order function) được sử dụng để mở rộng chức năng của một store trong Redux. Nó nhận hàm createStore làm đối số và trả về một hàm createStore được cải tiến. 
+ + Reducer and Action : 
+	_ createReducer: là một hàm được cung cấp bởi Redux Toolkit giúp bạn tạo reducer một cách dễ dàng và hiệu quả. Hàm này nhận một số đối số và trả về một reducer:
+		+ Đối số:
+			- initialState: Trạng thái ban đầu của reducer.
+			- builderCallback (Builder Methods): (builder: Builder) => void - Lệnh callback nhận đối tượng builder để xác định reducer thông qua action gọi đến builder.addCase(actionCreatorOrType, reducer).
+		+ Builder Methods: 
+			- builder.addCase : Thêm 1 case để xử lý một action 
+			- builder.addMatcher : Cho phép bạn so khớp các action được gọi với chức năng lọc của riêng bạn thay vì chỉ thuộc tính action.type.
+			- builder.addDefaultCase: Nếu action được gọi chưa được define trong reducer thì sẽ vào đây
+		+ Example : https://redux-toolkit.js.org/api/createReducer#example-usage
+
+	_ createAction: là một hàm tiện ích được cung cấp bởi Redux Toolkit giúp đơn giản hóa quá trình định nghĩa trình tạo hành động (action creator). Hàm này nhận một hoặc hai đối số và trả về một hàm để tạo hành động.
+		+ Đối số:
+			- type: string (Bắt buộc): Chuỗi nhận dạng duy nhất đại diện cho loại hành động.
+			- payloadCreator?: Function (Tùy chọn): Hàm tùy chọn nhận đối số và trả về một đối tượng đại diện cho tải trọng của hành động (dữ liệu liên kết với hành động).
+		+ Return:
+			- actionCreator: Function: Hàm mà khi được gọi, trả về một đối tượng hành động với các thuộc tính sau:
+			- type: Chuỗi được chỉ định trong đối số đầu tiên.
+			- payload: Nếu hàm payloadCreator được cung cấp, kết quả của việc gọi hàm đó với các đối số được truyền cho trình tạo hành động. Nếu không sẽ trả ra tham số được truyền vào khi dispatch action hoặc undefined.
+
+	_ createSlice: là một phần riêng biệt của state được quản lý bởi một reducer duy nhất, thường đại diện cho một phần cụ thể của dữ liệu hoặc chức năng trong ứng dụng của bạn. Và nó chỉ là 1 lát cắt của reducer tổng nên bắt buộc phải được combineSlices lại để gắn vào  rootReducer
+		+ Các đối số của createSlice:
+			- name: string (Bắt buộc): Tên của slice.
+			- initialState (Bắt buộc): Trạng thái ban đầu của slice.
+			- reducers (Bắt buộc): Một đối tượng ánh xạ các kiểu hành động (action type) đến các hàm xử lý hành động (reducer function) tương ứng. Mỗi hàm xử lý hành động nhận trạng thái hiện tại và hành động được dispatch làm đối số và trả về trạng thái mới của slice.
+
+	_ createAsyncThunk :  là một công cụ thiết yếu để quản lý các tác vụ bất đồng bộ trong các ứng dụng Redux. Nó cung cấp một cách thức có cấu trúc và hiệu quả để xử lý các quy trình bất đồng bộ khác nhau bằng cách đơn giản hóa việc tạo thunk, quản lý vòng đời hành động và thúc đẩy tổ chức mã và an toàn kiểu.
+
+	_ combineSlices : Một chức năng kết hợp các slice-reducer thành một reducer duy nhất và cho phép chèn thêm các slice-reducer sau khi khởi tạo.
+
+	_ createEntityAdapter là một hàm được cung cấp bởi Redux Toolkit giúp bạn quản lý các entity (thực thể) trong state của ứng dụng Redux một cách hiệu quả.
+		+ Giả sử bạn có một ứng dụng Redux đơn giản quản lý danh sách sản phẩm. Bạn có thể sử dụng createEntityAdapter để tạo adapter products và sử dụng adapter này để quản lý danh sách sản phẩm trong state.
