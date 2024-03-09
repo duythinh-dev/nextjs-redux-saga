@@ -1,11 +1,9 @@
 "use client";
 
 import Image from "next/image";
-import { Provider, connect } from "react-redux";
+import { connect } from "react-redux";
 
 import styles from "./page.module.css";
-import { StoreProvider } from "./StoreProvider";
-// import { selectCountPageDomain } from "../../lib/selecter";
 const mapStateToProps = (state: { count: number }) => ({
   ...state,
 });
